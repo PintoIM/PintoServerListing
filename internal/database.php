@@ -11,7 +11,7 @@
         private string $tableName;
         private mysqli $connection;
 
-        // TEXT + VARCHAR(15) + INT + INT + INT + DATETIME
+        // TEXT + TEXT + INT + INT + INT + DATETIME
         // name + ip + port + users + max_users + expire
         public function __construct(string $server_ip, int $server_port, string $username, 
             string $password, string $database, string $tableName) {
@@ -42,7 +42,7 @@
         private function createTable() {
             if ($this->tableExists()) return false;
             $this->connection->query("CREATE TABLE {$this->tableName}
-             (name TEXT, ip VARCHAR(15), port INT, users INT, max_users INT, expire DATETIME)");
+             (name TEXT, ip TEXT, port INT, users INT, max_users INT, expire DATETIME)");
         }
 
         /**
