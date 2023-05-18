@@ -11,8 +11,8 @@
         private string $tableName;
         private mysqli $connection;
 
-        // TEXT + TEXT + INT + INT + INT + DATETIME
-        // name + ip + port + users + max_users + expire
+        // TEXT + TEXT + INT + INT + INT + DATETIME + TEXT
+        // name + ip + port + users + max_users + expire + text
         public function __construct(string $server_ip, int $server_port, string $username, 
             string $password, string $database, string $tableName) {
             $this->server_ip = $server_ip;
@@ -42,7 +42,7 @@
         private function createTable() {
             if ($this->tableExists()) return false;
             $this->connection->query("CREATE TABLE {$this->tableName}
-             (name TEXT, ip TEXT, port INT, users INT, max_users INT, expire DATETIME)");
+             (name TEXT, ip TEXT, port INT, users INT, max_users INT, expire DATETIME, tags TEXT)");
         }
 
         /**
@@ -69,8 +69,9 @@
          */
         public function addServer(PintoServer $server) {
             if ($this->isServerAdded($server)) return false;
-            $statement = $this->connection->prepare("INSERT INTO {$this->tableName} VALUES (?, ?, ?, ?, ?, ?)");
-            $statement->bind_param("ssiiis", $server->name, $server->ip, $server->port, $server->users, $server->maxUsers, $server->expire);
+            $statement = $this->connection->prepare("INSERT INTO {$this->tableName} VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $statement->bind_param("ssiiiss", $server->name, $server->ip, $server->port, $server->users,
+             $server->maxUsers, $server->expire, $server->tags);
             return $statement->execute();
         }
 
@@ -92,8 +93,9 @@
         public function updateServer(PintoServer $server) {
             if (!$this->isServerAdded($server)) return false;
             $statement = $this->connection->prepare("UPDATE {$this->tableName}
-             SET name=?, ip=?, port=?, users=?, max_users=?, expire=? WHERE {$server->getSQLSelector()}");
-            $statement->bind_param("ssiiis", $server->name, $server->ip, $server->port, $server->users, $server->maxUsers, $server->expire);
+             SET name=?, ip=?, port=?, users=?, max_users=?, expire=?, tags=? WHERE {$server->getSQLSelector()}");
+            $statement->bind_param("ssiiiss", $server->name, $server->ip, $server->port, $server->users,
+             $server->maxUsers, $server->expire, $server->tags);
             return $statement->execute();
         }
 
@@ -112,6 +114,7 @@
             $server->users = intval($data["users"]);
             $server->maxUsers = intval($data["max_users"]);
             $server->expire = $data["expire"];
+            $server->tags = $data["tags"];
 
             return true;
         }
@@ -129,7 +132,7 @@
             while ($i < $result->num_rows) {
                 $data = $result->fetch_assoc();
                 $server = new PintoServer($data["name"], $data["ip"], intval($data["port"]),
-                 intval($data["users"]), intval($data["max_users"]), $data["expire"]);
+                 intval($data["users"]), intval($data["max_users"]), $data["expire"], $data["tags"]);
                 array_push($servers, $server);
                 $i++;
             }
@@ -149,14 +152,16 @@
         public int $maxUsers;
         // Y-m-d H:i:s
         public string $expire;
-
-        public function __construct(string $name, string $ip, int $port, int $users, int $maxUsers, string $expire) {
+        public string $tags;
+        
+        public function __construct(string $name, string $ip, int $port, int $users, int $maxUsers, string $expire, string $tags) {
             $this->name = $name;
             $this->ip = $ip;
             $this->port = $port;
             $this->users = $users;
             $this->maxUsers = $maxUsers;
             $this->expire = $expire;
+            $this->tags = $tags;
         }
 
         public function getSQLSelector() {
