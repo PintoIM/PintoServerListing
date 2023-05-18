@@ -34,13 +34,13 @@
 
     if ($database->isServerAdded($server)) {
         if ($database->updateServer($server)) {
-            showStatus(200, "OK");
+            showStatus(200, "Updated server");
         } else {
             showStatus(500, null, "Unable to update the server entry");
         }
     } else {
         if ($database->addServer($server)) {
-            showStatus(200, "OK");
+            showStatus(200, "Created server");
         } else {
             showStatus(500, null, "Unable to create the server entry");
         }

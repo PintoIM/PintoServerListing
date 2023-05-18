@@ -3,7 +3,7 @@
         http_response_code($code);
 
         $response = array(
-            "status" => ($error == null ? $status : "error")
+            "status" => ($error == null ? $status : "Error")
         );
         if ($error != null) {
             $response["error"] = $error;
